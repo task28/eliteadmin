@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task28 Elite - Admin Loading</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            color: #ffd700;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            animation: fadeIn 1s ease-in;
+        }
+        .logo-text {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: 5px;
+            background: linear-gradient(to right, #ffd700, #b8860b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            color: #fff;
+            letter-spacing: 8px;
+            margin-top: 10px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #333;
+            border-top: 3px solid #ffd700;
+            border-radius: 50%;
+            margin: 30px auto;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo-text">TASK28</div>
+    <div class="subtitle">ADMIN CONTROL</div>
+    <div class="loader"></div>
+</div>
+
+<script>
+    setTimeout(() => {
+        window.location.href = "admin_login.html";
+    }, 3000); // 3 Seconds Delay
+</script>
+
+</body>
+</html>

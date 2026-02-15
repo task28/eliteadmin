@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task28 Admin - User List</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --gold: #FFD700;
+            --dark: #0a0a0a;
+            --card: #161616;
+            --text: #e0e0e0;
+            --green: #00C851;
+            --red: #ff4444;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: #111;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            color: var(--gold);
+            font-size: 1.2rem;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .title { font-size: 1.2rem; font-weight: bold; color: white; flex-grow: 1; }
+
+        /* Search Bar */
+        .search-container {
+            padding: 15px;
+            background: #111;
+            border-bottom: 1px solid #333;
+        }
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 30px;
+            outline: none;
+            text-align: center;
+            font-size: 1rem;
+        }
+        .search-box:focus { border-color: var(--gold); }
+
+        /* User List */
+        .container { padding: 15px; padding-bottom: 80px; }
+        
+        .user-card {
+            background: var(--card);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: 0.3s;
+        }
+        
+        /* Active/Inactive Border Indicator */
+        .card-active { border-left: 4px solid var(--green); }
+        .card-inactive { border-left: 4px solid var(--red); }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        .u-name { font-weight: bold; color: var(--gold); font-size: 1.1rem; }
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-active { background: rgba(0, 200, 81, 0.2); color: var(--green); }
+        .badge-inactive { background: rgba(255, 68, 68, 0.2); color: var(--red); }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #ccc;
+        }
+        .info-item span { display: block; color: #888; font-size: 0.7rem; }
+        
+        .balance-row {
+            margin-top: 10px;
+            background: #222;
+            padding: 8px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bal-txt { color: white; font-weight: bold; }
+        .edit-btn {
+            background: var(--gold);
+            color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* Modal for Editing Balance */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--gold);
+            width: 300px;
+            text-align: center;
+        }
+        .modal-inp {
+            width: 100%; padding: 10px; margin: 15px 0;
+            background: #333; border: 1px solid #555; color: white;
+            border-radius: 5px;
+        }
+        .modal-btn {
+            padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;
+        }
+        .btn-save { background: var(--gold); color: black; }
+        .btn-close { background: #333; color: white; margin-left: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="admin_home.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <div class="title">USER MANAGEMENT</div>
+        <div style="font-size: 0.8rem; color: #888;">Total: <span id="total-count">0</span></div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-box" placeholder="Search by Name or Phone..." onkeyup="filterUsers()">
+    </div>
+
+    <!-- User List -->
+    <div class="container" id="user-list">
+        <div style="text-align:center; padding:20px;">Loading Data...</div>
+    </div>
+
+    <!-- Edit Balance Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <h3 style="color:var(--gold); margin-top:0;">Modify Balance</h3>
+            <p style="font-size:0.9rem; color:#aaa;" id="modal-user-name">User Name</p>
+            <input type="number" id="newBalanceInput" class="modal-inp" placeholder="Enter new balance">
+            <button class="modal-btn btn-save" onclick="saveBalance()">SAVE CHANGE</button>
+            <button class="modal-btn btn-close" onclick="closeModal()">CANCEL</button>
+        </div>
+    </div>
+
+    <script>
+        // Check Admin Auth
+        if (!sessionStorage.getItem("adminAuth")) { window.location.href = "admin_login.html"; }
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXMFqxIe8IrZkzUx2YVMTvVXQmIAhtruc",
+            authDomain: "love-1-6cdb1.firebaseapp.com",
+            databaseURL: "https://love-1-6cdb1-default-rtdb.firebaseio.com",
+            projectId: "love-1-6cdb1",
+            storageBucket: "love-1-6cdb1.firebasestorage.app",
+            messagingSenderId: "949848083048",
+            appId: "1:949848083048:web:ced52526264da1dcf4c9dd"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let allUsers = [];
+        let currentEditingUid = null;
+
+        // Fetch Users
+        db.ref('users').on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                allUsers = [];
+                
+                // Convert Object to Array
+                for (let uid in data) {
+                    allUsers.push({ id: uid, ...data[uid] });
+                }
+
+                // SORTING: Active users first
+                allUsers.sort((a, b) => {
+                    // tasksCompleted >= 2 means Active. 
+                    // We check if a is active and b is not.
+                    const aActive = (a.tasksCompleted >= 2);
+                    const bActive = (b.tasksCompleted >= 2);
+                    return (aActive === bActive) ? 0 : aActive ? -1 : 1;
+                });
+
+                document.getElementById('total-count').innerText = allUsers.length;
+                renderUsers(allUsers);
+            } else {
+                document.getElementById('user-list').innerHTML = '<div style="text-align:center;">No Users Found</div>';
+            }
+        });
+
+        // Render Function
+        function renderUsers(users) {
+            const container = document.getElementById('user-list');
+            container.innerHTML = "";
+
+            users.forEach(user => {
+                const isActive = (user.tasksCompleted >= 2);
+                const statusClass = isActive ? "card-active" : "card-inactive";
+                const badgeClass = isActive ? "badge-active" : "badge-inactive";
+                const statusText = isActive ? "ACTIVE" : "UNACTIVE";
+                
+                // Join Date (Simulated if not in DB, assuming tasks requested timestamp or generic)
+                // For now, if no join date, we show 'N/A' or simple formatting
+                const joinDate = user.joinDate ? user.joinDate : "N/A"; 
+
+                const html = `
+                <div class="user-card ${statusClass}">
+                    <div class="header-row">
+                        <div class="u-name">${user.firstName} ${user.lastName}</div>
+                        <div class="status-badge ${badgeClass}">${statusText}</div>
+                    </div>
+                    
+                    <div class="info-grid">
+                        <div class="info-item"><span>Phone</span>${user.phone}</div>
+                        <div class="info-item"><span>Password</span>${user.password}</div>
+                        <div class="info-item"><span>Referral Code</span>${user.myReferralCode}</div>
+                        <div class="info-item"><span>Joined</span>${joinDate}</div>
+                    </div>
+
+                    <div class="balance-row">
+                        <div class="bal-txt">Balance: ৳ ${user.balance || 0}</div>
+                        <button class="edit-btn" onclick="openModal('${user.id}', '${user.firstName}', ${user.balance || 0})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </div>
+                </div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        // Search Filter
+        function filterUsers() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allUsers.filter(user => {
+                const name = (user.firstName + " " + user.lastName).toLowerCase();
+                const phone = user.phone ? user.phone.toString() : "";
+                return name.includes(term) || phone.includes(term);
+            });
+            renderUsers(filtered);
+        }
+
+        // Modal Functions
+        function openModal(uid, name, balance) {
+            currentEditingUid = uid;
+            document.getElementById('modal-user-name').innerText = "Editing: " + name;
+            document.getElementById('newBalanceInput').value = balance;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditingUid = null;
+        }
+
+        function saveBalance() {
+            const newBal = parseFloat(document.getElementById('newBalanceInput').value);
+            if (currentEditingUid && !isNaN(newBal)) {
+                db.ref('users/' + currentEditingUid).update({
+                    balance: newBal
+                }).then(() => {
+                    alert("Balance Updated Successfully!");
+                    closeModal();
+                });
+            } else {
+                alert("Invalid Amount!");
+            }
+        }
+
+    </script>
+</body>
+</html>

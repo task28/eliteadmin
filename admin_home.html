@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task28 - Admin Dashboard</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --gold: #FFD700;
+            --dark: #0a0a0a;
+            --card: #161616;
+            --text: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding-bottom: 20px;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #111;
+            border-bottom: 1px solid #333;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .brand {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+        .logout-btn {
+            background: #333;
+            color: #ff4444;
+            border: 1px solid #ff4444;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* Stats Grid */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 20px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--gold);
+        }
+        .stat-val { font-size: 1.5rem; font-weight: bold; color: white; margin: 10px 0; }
+        .stat-label { font-size: 0.8rem; color: #888; text-transform: uppercase; }
+
+        /* Admin Menu Grid */
+        .menu-title {
+            padding: 0 20px;
+            color: var(--gold);
+            font-size: 1.1rem;
+            margin-top: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 buttons per row */
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .menu-btn {
+            background: var(--card);
+            border: 1px solid #444;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
+            background: #222;
+        }
+
+        .menu-btn i {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--gold);
+        }
+        
+        .menu-btn span { font-size: 0.9rem; font-weight: 500; }
+        
+        /* Specific Colors for specific buttons */
+        .btn-msg { grid-column: span 2; background: rgba(255, 215, 0, 0.05); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="brand">ADMIN PANEL</div>
+        <button class="logout-btn" onclick="logout()">LOGOUT</button>
+    </nav>
+
+    <!-- Realtime Stats -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-val" id="totalUsers">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Balance</div>
+            <div class="stat-val">৳ <span id="totalBal">0</span></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Task Request</div>
+            <div class="stat-val" id="taskPending">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Withdraw Req</div>
+            <div class="stat-val" id="withdrawPending">0</div>
+        </div>
+    </div>
+
+    <div class="menu-title">CONTROL CENTER</div>
+
+    <!-- Menu Buttons -->
+    <div class="menu-grid">
+        <a href="admin_request.html" class="menu-btn">
+            <i class="fas fa-tasks"></i>
+            <span>Task Requests</span>
+        </a>
+        
+        <a href="admin_withdrawal.html" class="menu-btn">
+            <i class="fas fa-money-check-alt"></i>
+            <span>Withdraw Requests</span>
+        </a>
+
+        <a href="admin_monthly_weekly_request.html" class="menu-btn">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Weekly/Monthly</span>
+        </a>
+
+        <a href="admin_user_details.html" class="menu-btn">
+            <i class="fas fa-users-cog"></i>
+            <span>User Details</span>
+        </a>
+
+        <a href="admin_target.html" class="menu-btn">
+            <i class="fas fa-bullseye"></i>
+            <span>Set Target</span>
+        </a>
+
+        <a href="admin_banner.html" class="menu-btn">
+            <i class="fas fa-image"></i>
+            <span>Banner Control</span>
+        </a>
+
+        <!-- Message Button (Full Width) -->
+        <a href="admin_message.html" class="menu-btn btn-msg">
+            <i class="fas fa-envelope"></i>
+            <span>Send Message to Users</span>
+        </a>
+    </div>
+
+    <script>
+        // Check Session
+        if (!sessionStorage.getItem("adminAuth")) {
+            window.location.href = "admin_login.html";
+        }
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXMFqxIe8IrZkzUx2YVMTvVXQmIAhtruc",
+            authDomain: "love-1-6cdb1.firebaseapp.com",
+            databaseURL: "https://love-1-6cdb1-default-rtdb.firebaseio.com",
+            projectId: "love-1-6cdb1",
+            storageBucket: "love-1-6cdb1.firebasestorage.app",
+            messagingSenderId: "949848083048",
+            appId: "1:949848083048:web:ced52526264da1dcf4c9dd"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- FETCH REALTIME STATS ---
+
+        // 1. Total Users & Total Balance
+        db.ref('users').on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const users = snapshot.val();
+                const totalUserCount = Object.keys(users).length;
+                let totalBalance = 0;
+
+                for (let id in users) {
+                    if (users[id].balance) {
+                        totalBalance += parseFloat(users[id].balance);
+                    }
+                }
+
+                document.getElementById('totalUsers').innerText = totalUserCount;
+                document.getElementById('totalBal').innerText = totalBalance.toFixed(2);
+            }
+        });
+
+        // 2. Pending Task Requests
+        db.ref('tasks').on('value', (snapshot) => {
+            let pending = 0;
+            if (snapshot.exists()) {
+                const tasks = snapshot.val();
+                for (let uid in tasks) {
+                    // Count if status is 'requested' (Waiting for admin) or 'submitted' (Waiting for approval)
+                    if (tasks[uid].status === 'requested' || tasks[uid].status === 'submitted') {
+                        pending++;
+                    }
+                }
+            }
+            document.getElementById('taskPending').innerText = pending;
+        });
+
+        // 3. Pending Withdraw Requests
+        db.ref('withdrawals').on('value', (snapshot) => {
+            let pending = 0;
+            if (snapshot.exists()) {
+                const reqs = snapshot.val();
+                for (let id in reqs) {
+                    if (reqs[id].status === 'pending') {
+                        pending++;
+                    }
+                }
+            }
+            document.getElementById('withdrawPending').innerText = pending;
+        });
+
+        function logout() {
+            sessionStorage.removeItem("adminAuth");
+            window.location.href = "admin_login.html";
+        }
+    </script>
+</body>
+</html>

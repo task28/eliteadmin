@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task28 Admin - Requests</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --gold: #FFD700;
+            --dark: #0a0a0a;
+            --card: #161616;
+            --text: #e0e0e0;
+            --green: #00C851;
+            --red: #ff4444;
+            --blue: #33b5e5;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding-bottom: 50px;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: #111;
+            border-bottom: 1px solid #333;
+        }
+        .back-btn {
+            color: var(--gold);
+            font-size: 1.2rem;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .title { font-size: 1.2rem; font-weight: bold; color: white; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 per row */
+            gap: 10px;
+            padding: 15px;
+        }
+        .stat-box {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+        .stat-num { font-size: 1.5rem; font-weight: bold; display: block; }
+        .stat-lbl { font-size: 0.75rem; color: #888; text-transform: uppercase; }
+
+        /* Request Lists */
+        .container { padding: 15px; }
+        
+        .req-card {
+            background: var(--card);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s;
+        }
+
+        .user-head {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .u-name { font-weight: bold; color: var(--gold); }
+        .u-id { font-size: 0.8rem; color: #666; }
+
+        /* Text Area for Paste */
+        .paste-area {
+            width: 100%;
+            height: 100px;
+            background: #222;
+            border: 1px solid #444;
+            color: #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            resize: none;
+        }
+
+        .auto-btn {
+            width: 100%;
+            background: #333;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 8px;
+            margin: 10px 0;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        .auto-btn:hover { background: var(--gold); color: black; }
+
+        /* Parsed Inputs Grid */
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .inp-group label { display: block; font-size: 0.7rem; color: #888; margin-bottom: 3px; }
+        .inp-field {
+            width: 100%;
+            background: #000;
+            border: 1px solid #333;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+        }
+        .btn-send { background: linear-gradient(45deg, var(--gold), #ff8c00); color: black; }
+        .btn-approve { background: var(--green); }
+        .btn-reject { background: var(--red); }
+
+        /* Review Section Style */
+        .review-box {
+            background: rgba(51, 181, 229, 0.1);
+            border: 1px solid var(--blue);
+            padding: 10px;
+            margin-bottom: 10px;
+            color: var(--blue);
+            word-break: break-all;
+        }
+
+        @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="admin_home.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <div class="title">TASK REQUESTS</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-box" style="border-bottom: 2px solid var(--gold);">
+            <span class="stat-num" id="cnt-req">0</span>
+            <span class="stat-lbl">New Request</span>
+        </div>
+        <div class="stat-box" style="border-bottom: 2px solid var(--blue);">
+            <span class="stat-num" id="cnt-rev">0</span>
+            <span class="stat-lbl">In Review</span>
+        </div>
+        <div class="stat-box" style="border-bottom: 2px solid var(--green);">
+            <span class="stat-num" id="cnt-suc">0</span>
+            <span class="stat-lbl">Success</span>
+        </div>
+        <div class="stat-box" style="border-bottom: 2px solid var(--red);">
+            <span class="stat-num" id="cnt-fail">0</span>
+            <span class="stat-lbl">Failed</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container" id="list-container">
+        <div style="text-align:center; color:#666; margin-top:50px;">Loading Requests...</div>
+    </div>
+
+    <script>
+        // Check Session
+        if (!sessionStorage.getItem("adminAuth")) { window.location.href = "admin_login.html"; }
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXMFqxIe8IrZkzUx2YVMTvVXQmIAhtruc",
+            authDomain: "love-1-6cdb1.firebaseapp.com",
+            databaseURL: "https://love-1-6cdb1-default-rtdb.firebaseio.com",
+            projectId: "love-1-6cdb1",
+            storageBucket: "love-1-6cdb1.firebasestorage.app",
+            messagingSenderId: "949848083048",
+            appId: "1:949848083048:web:ced52526264da1dcf4c9dd"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Load Requests
+        db.ref('tasks').on('value', (snapshot) => {
+            const container = document.getElementById('list-container');
+            container.innerHTML = ""; // Clear list
+
+            let req=0, rev=0, suc=0, fail=0;
+
+            if(snapshot.exists()){
+                const tasks = snapshot.val();
+                
+                // We need to fetch User Names for display, so we will do async load
+                const promises = Object.keys(tasks).map(async (uid) => {
+                    const task = tasks[uid];
+
+                    // Count Stats
+                    if(task.status === 'requested') req++;
+                    if(task.status === 'submitted') rev++;
+                    if(task.status === 'success') suc++; // Assuming you might save history
+                    if(task.status === 'failed') fail++;
+
+                    // Render Cards based on Status
+                    if(task.status === 'requested') {
+                        // NEW REQUEST CARD
+                        const uSnap = await db.ref('users/' + uid).once('value');
+                        const uName = uSnap.val() ? uSnap.val().firstName + ' ' + uSnap.val().lastName : "Unknown User";
+                        
+                        return `
+                        <div class="req-card">
+                            <div class="user-head">
+                                <span class="u-name">${uName}</span>
+                                <span class="u-id">UID: ...${uid.slice(-4)}</span>
+                            </div>
+                            <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">Paste Full Details Here:</div>
+                            <textarea id="paste_${uid}" class="paste-area" placeholder="First name: Kevin\nLast name: Hernandez\nPassword: ..."></textarea>
+                            <button class="auto-btn" onclick="autoFill('${uid}')"><i class="fas fa-magic"></i> Auto Fill Data</button>
+                            
+                            <div class="input-grid">
+                                <div class="inp-group"><label>First Name</label><input class="inp-field" id="fname_${uid}"></div>
+                                <div class="inp-group"><label>Last Name</label><input class="inp-field" id="lname_${uid}"></div>
+                                <div class="inp-group"><label>Password</label><input class="inp-field" id="pass_${uid}"></div>
+                                <div class="inp-group"><label>Birthdate</label><input class="inp-field" id="dob_${uid}"></div>
+                                <div class="inp-group"><label>Email</label><input class="inp-field" id="email_${uid}"></div>
+                                <div class="inp-group"><label>Rec. Email</label><input class="inp-field" id="rec_${uid}"></div>
+                            </div>
+
+                            <button class="action-btn btn-send" onclick="assignTask('${uid}')">SEND TASK TO USER</button>
+                        </div>`;
+                    } 
+                    else if (task.status === 'submitted') {
+                        // REVIEW CARD
+                        const uSnap = await db.ref('users/' + uid).once('value');
+                        const uName = uSnap.val() ? uSnap.val().firstName : "User";
+
+                        return `
+                        <div class="req-card">
+                            <div class="user-head">
+                                <span class="u-name">${uName}</span>
+                                <span style="color:var(--blue)">SUBMITTED</span>
+                            </div>
+                            <div style="font-size:0.8rem; margin-bottom:5px;">User Created Email:</div>
+                            <div class="review-box">${task.submittedData}</div>
+                            
+                            <div style="display:flex; gap:10px;">
+                                <button class="action-btn btn-approve" onclick="approveTask('${uid}')">APPROVE</button>
+                                <button class="action-btn btn-reject" onclick="rejectTask('${uid}')">REJECT</button>
+                            </div>
+                        </div>`;
+                    }
+                    return '';
+                });
+
+                Promise.all(promises).then((htmlArray) => {
+                    const finalHtml = htmlArray.join('');
+                    container.innerHTML = finalHtml || '<div style="text-align:center; color:#444; margin-top:20px;">No Pending Requests</div>';
+                    
+                    // Update Stats
+                    document.getElementById('cnt-req').innerText = req;
+                    document.getElementById('cnt-rev').innerText = rev;
+                    document.getElementById('cnt-suc').innerText = suc;
+                    document.getElementById('cnt-fail').innerText = fail;
+                });
+
+            } else {
+                container.innerHTML = '<div style="text-align:center; color:#444; margin-top:20px;">No Requests Found</div>';
+            }
+        });
+
+        // --- AUTO FILL LOGIC ---
+        function autoFill(uid) {
+            const rawText = document.getElementById('paste_' + uid).value;
+            
+            // Helper function to extract value by key (Case insensitive)
+            const extract = (key) => {
+                // Regex: Look for Key followed by optional colon/space, then capture everything until new line
+                const regex = new RegExp(key + "[:\\s]*(.*)", "i");
+                const match = rawText.match(regex);
+                return match ? match[1].trim() : "";
+            };
+
+            document.getElementById('fname_' + uid).value = extract("First name");
+            document.getElementById('lname_' + uid).value = extract("Last name");
+            document.getElementById('pass_' + uid).value = extract("Password");
+            document.getElementById('dob_' + uid).value = extract("Birthdate");
+            document.getElementById('email_' + uid).value = extract("Email"); // Will catch "Recovery email" first if not careful, so order usually matters or exact match
+            
+            // To prevent "Email" regex capturing "Recovery Email", we do specific checks or use the exact string provided
+            // Better Regex for strict "Email:" vs "Recovery email:"
+            
+            // Specific overrides for accuracy based on your provided format
+            const lines = rawText.split('\n');
+            lines.forEach(line => {
+                if(line.toLowerCase().startsWith("first name:")) document.getElementById('fname_' + uid).value = line.split(':')[1].trim();
+                if(line.toLowerCase().startsWith("last name:")) document.getElementById('lname_' + uid).value = line.split(':')[1].trim();
+                if(line.toLowerCase().startsWith("password:")) document.getElementById('pass_' + uid).value = line.split(':')[1].trim();
+                if(line.toLowerCase().startsWith("birthdate:")) document.getElementById('dob_' + uid).value = line.split(':')[1].trim();
+                if(line.toLowerCase().startsWith("email:")) document.getElementById('email_' + uid).value = line.split(':')[1].trim();
+                if(line.toLowerCase().startsWith("recovery email:")) document.getElementById('rec_' + uid).value = line.split(':')[1].trim();
+            });
+        }
+
+        // --- ASSIGN TASK ---
+        function assignTask(uid) {
+            const data = {
+                firstName: document.getElementById('fname_' + uid).value,
+                lastName: document.getElementById('lname_' + uid).value,
+                password: document.getElementById('pass_' + uid).value,
+                birthdate: document.getElementById('dob_' + uid).value,
+                email: document.getElementById('email_' + uid).value,
+                recovery: document.getElementById('rec_' + uid).value
+            };
+
+            if(!data.firstName || !data.password) {
+                alert("Please fill at least First Name and Password!");
+                return;
+            }
+
+            db.ref('tasks/' + uid).update({
+                status: 'assigned',
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                data: data
+            }).then(() => alert("Task Sent to User!"));
+        }
+
+        // --- APPROVE TASK ---
+        function approveTask(uid) {
+            if(confirm("Mark this task as SUCCESS? User balance will increase.")) {
+                // 1. Update Task Status
+                db.ref('tasks/' + uid).update({ status: 'idle' }); // Reset for next task
+                
+                // 2. Update User Stats & Balance
+                db.ref('users/' + uid).transaction(user => {
+                    if (user) {
+                        user.balance = (user.balance || 0) + 15; // Example: 15tk per task
+                        user.lifetimeBalance = (user.lifetimeBalance || 0) + 15;
+                        user.tasksCompleted = (user.tasksCompleted || 0) + 1;
+                        if (!user.stats) user.stats = {};
+                        user.stats.success = (user.stats.success || 0) + 1;
+                        user.stats.pending = (user.stats.pending || 0) - 1; // Decrease pending count
+                    }
+                    return user;
+                });
+                alert("Task Approved!");
+            }
+        }
+
+        // --- REJECT TASK ---
+        function rejectTask(uid) {
+            if(confirm("Mark this task as FAILED?")) {
+                db.ref('tasks/' + uid).update({ status: 'idle' }); // Reset
+                
+                db.ref('users/' + uid + '/stats').transaction(stats => {
+                    if(!stats) stats = {};
+                    stats.failed = (stats.failed || 0) + 1;
+                    stats.pending = (stats.pending || 0) - 1;
+                    return stats;
+                });
+                alert("Task Rejected.");
+            }
+        }
+
+    </script>
+</body>
+</html>

@@ -3,101 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task28 - Admin Login</title>
+    <title>Admin Login</title>
     <style>
-        body {
-            background: #050505;
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-card {
-            background: #111;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
-            border: 1px solid #333;
-            width: 300px;
-            text-align: center;
-        }
-        .title {
-            color: #ffd700;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            background: #222;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 5px;
-            outline: none;
-            box-sizing: border-box;
-            transition: 0.3s;
-        }
-        input:focus {
-            border-color: #ffd700;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(45deg, #ffd700, #ffaa00);
-            border: none;
-            color: black;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .error {
-            color: #ff4444;
-            font-size: 12px;
-            margin-top: 15px;
-            display: none;
-        }
+        body { background: #0f0f0f; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Segoe UI', sans-serif; color: #fff; }
+        .login-box { background: #1a1a1a; padding: 40px; border-radius: 15px; border: 1px solid #D4AF37; width: 300px; text-align: center; box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+        h2 { color: #D4AF37; margin-bottom: 30px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #D4AF37; border: none; font-weight: bold; cursor: pointer; margin-top: 20px; border-radius: 5px; }
+        button:hover { background: #b89628; }
     </style>
 </head>
 <body>
+    <div class="login-box">
+        <h2>ADMIN ACCESS</h2>
+        <input type="text" id="phone" placeholder="Phone Number">
+        <input type="password" id="pass" placeholder="Password">
+        <button onclick="login()">SECURE LOGIN</button>
+    </div>
 
-<div class="login-card">
-    <div class="title">ADMIN ACCESS</div>
-    <input type="text" id="adminPhone" placeholder="Admin Number">
-    <input type="password" id="adminPass" placeholder="Secret Key">
-    <button onclick="adminLogin()">ENTER PANEL</button>
-    <div class="error" id="errMsg">Access Denied! Invalid Credentials.</div>
-</div>
-
-<script>
-    function adminLogin() {
-        const p = document.getElementById('adminPhone').value;
-        const k = document.getElementById('adminPass').value;
-        const err = document.getElementById('errMsg');
-
-        // Hardcoded Security Check
-        if (p === "01310504728" && k === "RASFAN20") {
-            // Save session
-            sessionStorage.setItem("adminAuth", "true");
-            window.location.href = "admin_home.html";
-        } else {
-            err.style.display = "block";
-            // Simple shake effect
-            document.querySelector('.login-card').animate([
-                { transform: 'translateX(0)' },
-                { transform: 'translateX(-10px)' },
-                { transform: 'translateX(10px)' },
-                { transform: 'translateX(0)' }
-            ], { duration: 300 });
+    <script>
+        function login() {
+            const p = document.getElementById('phone').value;
+            const pass = document.getElementById('pass').value;
+            if(p === "01310504728" && pass === "RAFSAN20") {
+                localStorage.setItem('admin_auth', 'true');
+                window.location.href = "admin_home.html";
+            } else {
+                alert("Access Denied! Wrong Credentials.");
+            }
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>

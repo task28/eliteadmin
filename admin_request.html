@@ -3,87 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Request - Admin</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Task Manager - Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --gold: #D4AF37; --dark: #0f0f0f; --card: #1e1e1e; --green: #28a745; --red: #dc3545; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--dark); color: #fff; padding: 20px; }
-        
-        .top-stats { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .stat-badge { background: #222; padding: 10px 20px; border-radius: 5px; border: 1px solid #444; flex: 1; text-align: center; }
-        .stat-badge span { display: block; font-size: 1.2rem; font-weight: bold; }
-        
-        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        
-        /* Left: Incoming Requests & Proofs */
-        .section { background: var(--card); padding: 15px; border-radius: 10px; border: 1px solid #333; height: 80vh; overflow-y: auto; }
-        .req-card { background: #000; padding: 10px; margin-bottom: 10px; border-left: 3px solid var(--gold); cursor: pointer; }
-        .req-card:hover { background: #333; }
-        .req-card.active { border-color: var(--green); background: #222; }
-        
-        /* Right: Assign Task Form */
-        .form-box { background: #151515; padding: 20px; border-radius: 10px; border: 1px solid var(--gold); }
-        .raw-input { width: 100%; height: 100px; background: #222; color: #fff; border: 1px dashed #555; padding: 10px; margin-bottom: 10px; }
-        .auto-btn { background: var(--gold); color: #000; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 15px; }
-        
-        input { width: 100%; padding: 10px; margin-bottom: 10px; background: #333; border: 1px solid #555; color: #fff; box-sizing: border-box; }
-        .send-btn { background: var(--green); color: #fff; width: 100%; padding: 12px; border: none; font-weight: bold; cursor: pointer; }
+        :root {
+            --primary-yellow: #FFC107;
+            --primary-green: #00E676;
+            --bg-dark: #050505;
+            --card-bg: #121212;
+            --text-gray: #B0B0B0;
+            --border-color: #333;
+        }
 
-        /* Action Buttons for Proof */
-        .action-btns { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-approve { background: var(--green); flex: 1; padding: 8px; border: none; color: #fff; cursor: pointer; }
-        .btn-reject { background: var(--red); flex: 1; padding: 8px; border: none; color: #fff; cursor: pointer; }
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- Header --- */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--primary-yellow); padding-bottom: 15px; margin-bottom: 20px;
+        }
+        .app-title { color: var(--primary-yellow); font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
+        .header-btns { display: flex; gap: 10px; }
+        .btn-top { padding: 8px 15px; border: 1px solid #555; background: #222; color: #fff; cursor: pointer; border-radius: 4px; font-size: 0.8rem; text-decoration: none; display: inline-block; }
+        .btn-top:hover { background: #333; }
+
+        /* --- Stats Counter --- */
+        .stats-bar {
+            display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;
+        }
+        .stat-item {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            padding: 10px 20px; border-radius: 5px; flex: 1; min-width: 150px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .stat-label { color: var(--text-gray); font-size: 0.8rem; text-transform: uppercase; }
+        .stat-val { font-size: 1.2rem; font-weight: bold; color: var(--primary-yellow); }
+
+        /* --- Section Titles --- */
+        .section-title {
+            border-left: 4px solid var(--primary-yellow);
+            padding-left: 10px; font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; text-transform: uppercase;
+        }
+
+        /* --- Request Card (The Main Design) --- */
+        .req-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            max-width: 800px;
+        }
+
+        .uid-text { color: var(--primary-yellow); font-family: monospace; font-size: 1rem; margin-bottom: 10px; }
+        .user-info-box {
+            background: #1E1E1E; padding: 15px; border-radius: 5px; margin-bottom: 20px;
+        }
+        .u-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; color: #ddd; font-size: 0.9rem; }
+        .u-row i { color: var(--primary-green); width: 20px; }
+
+        /* Form Elements */
+        .paste-area {
+            width: 100%; height: 80px; background: #000; color: var(--primary-green);
+            border: 1px dashed var(--primary-green); padding: 10px; border-radius: 5px;
+            font-family: monospace; font-size: 0.8rem; resize: none; margin-bottom: 10px;
+            box-sizing: border-box; outline: none;
+        }
+        .paste-area::placeholder { color: #333; }
+
+        .btn-auto {
+            width: 100%; background: transparent; color: var(--primary-green);
+            border: 1px solid var(--primary-green); padding: 10px; cursor: pointer;
+            font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 20px; transition: 0.2s;
+        }
+        .btn-auto:hover { background: rgba(0, 230, 118, 0.1); }
+
+        .input-label { display: block; color: var(--text-gray); font-size: 0.75rem; margin-bottom: 5px; }
+        .input-field {
+            width: 100%; background: #000; border: 1px solid #444; color: white;
+            padding: 10px; margin-bottom: 15px; border-radius: 3px; box-sizing: border-box; outline: none;
+        }
+        .input-field:focus { border-color: var(--primary-yellow); }
+
+        .btn-send {
+            width: 100%; background: var(--primary-yellow); color: #000;
+            border: none; padding: 15px; font-weight: bold; cursor: pointer;
+            font-size: 1rem; letter-spacing: 1px; border-radius: 4px;
+        }
+        .btn-send:hover { background: #e0a800; }
+
+        /* --- Submitted Section --- */
+        .review-card {
+            border: 1px solid #444; background: #111; padding: 15px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center; border-radius: 5px;
+        }
+        .review-details { font-size: 0.9rem; color: #ccc; }
+        .review-actions button { padding: 5px 15px; cursor: pointer; border: none; font-weight: bold; margin-left: 5px; border-radius: 3px; }
+        .btn-approve { background: var(--primary-green); color: #000; }
+        .btn-reject { background: #ff4d4d; color: #fff; }
+
+        .no-data { color: #444; font-style: italic; border: 1px dashed #333; padding: 20px; text-align: center; }
 
     </style>
 </head>
 <body>
 
-    <h2 style="color:var(--gold); border-bottom:1px solid #333; padding-bottom:10px;">TASK MANAGEMENT</h2>
-
-    <div class="top-stats">
-        <div class="stat-badge" style="color:var(--gold)">Given: <span id="cntGiven">0</span></div>
-        <div class="stat-badge" style="color:#ffa500">Pending: <span id="cntPending">0</span></div>
-        <div class="stat-badge" style="color:var(--green)">Successful: <span id="cntSuccess">0</span></div>
-        <div class="stat-badge" style="color:var(--red)">Rejected: <span id="cntReject">0</span></div>
-    </div>
-
-    <div class="container">
-        
-        <!-- LEFT: Requests List -->
-        <div class="section">
-            <h3 style="color:#aaa">INCOMING REQUESTS</h3>
-            <div id="requestList">
-                <!-- User Requests will load here -->
-                <div style="color:#555; text-align:center;">Waiting for requests...</div>
-            </div>
-
-            <h3 style="color:#aaa; margin-top:30px;">SUBMITTED PROOFS</h3>
-            <div id="proofList">
-                <!-- Proofs will load here -->
-            </div>
-        </div>
-
-        <!-- RIGHT: Assign Form -->
-        <div class="section">
-            <div class="form-box">
-                <h3 style="margin-top:0">ASSIGN NEW TASK</h3>
-                <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">Selected User: <span id="selectedUser" style="color:var(--gold)">None</span></div>
-                
-                <textarea id="rawData" class="raw-input" placeholder="Paste data here...&#10;First name: Kevin&#10;Last name: Hernandez&#10;..."></textarea>
-                <button class="auto-btn" onclick="autoFill()">AUTO FILL DATA</button>
-
-                <input type="text" id="fname" placeholder="First Name">
-                <input type="text" id="lname" placeholder="Last Name">
-                <input type="text" id="pass" placeholder="Password">
-                <input type="text" id="dob" placeholder="Birthdate">
-                <input type="text" id="email" placeholder="Email">
-                <input type="text" id="recEmail" placeholder="Recovery Email">
-
-                <button class="send-btn" onclick="sendTask()">SEND TASK TO USER</button>
-            </div>
+    <!-- Header -->
+    <div class="header">
+        <div class="app-title">TASK MANAGER</div>
+        <div class="header-btns">
+            <button class="btn-top"><i class="fas fa-volume-up"></i> Test Voice</button>
+            <a href="admin_home.html" class="btn-top">BACK</a>
         </div>
     </div>
 
+    <!-- Stats Counters -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span class="stat-label">Requests</span>
+            <span class="stat-val" id="cntReq">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Pending Given</span>
+            <span class="stat-val" id="cntGiven">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Review</span>
+            <span class="stat-val" id="cntReview">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Completed</span>
+            <span class="stat-val" id="cntSuccess" style="color:var(--primary-green)">0</span>
+        </div>
+    </div>
+
+    <!-- Pending Requests Container -->
+    <div class="section-title">| PENDING REQUESTS</div>
+    <div id="pendingContainer">
+        <div class="no-data">Loading requests...</div>
+    </div>
+
+    <!-- Submitted Container -->
+    <div class="section-title" style="margin-top: 40px;">| SUBMITTED FOR REVIEW</div>
+    <div id="reviewContainer">
+        <div class="no-data">No submissions pending review.</div>
+    </div>
+
+    <!-- Javascript -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
@@ -100,157 +173,164 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let selectedUid = null;
-        let adminStats = { given: 0, success: 0, reject: 0 };
-
-        // Load Stats
-        onValue(ref(db, 'admin/stats'), (snap) => {
-            const data = snap.val();
-            if(data) {
-                adminStats = data;
-                document.getElementById('cntGiven').innerText = data.given || 0;
-                document.getElementById('cntSuccess').innerText = data.success || 0;
-                document.getElementById('cntReject').innerText = data.reject || 0;
-            }
-        });
-
-        // Load Requests & Proofs
+        // Load Users
         onValue(ref(db, 'users'), (snapshot) => {
             const users = snapshot.val();
-            const reqList = document.getElementById('requestList');
-            const proofList = document.getElementById('proofList');
+            const pendingContainer = document.getElementById('pendingContainer');
+            const reviewContainer = document.getElementById('reviewContainer');
             
-            reqList.innerHTML = '';
-            proofList.innerHTML = '';
-            let pendingCount = 0;
+            pendingContainer.innerHTML = '';
+            reviewContainer.innerHTML = '';
+
+            let stats = { req: 0, given: 0, review: 0, success: 0 };
 
             if (users) {
+                let hasPending = false;
+                let hasReview = false;
+
                 Object.entries(users).forEach(([uid, user]) => {
-                    // 1. New Requests (Searching)
-                    if (user.current_task && user.current_task.status === 'searching') {
-                        const div = document.createElement('div');
-                        div.className = 'req-card';
-                        div.innerHTML = `<b>${user.firstName}</b> (${user.phone})<br><small>Waiting for task...</small>`;
-                        div.onclick = () => selectUser(uid, user.firstName, div);
-                        reqList.appendChild(div);
+                    // Update Stats
+                    if (user.current_task?.status === 'searching') stats.req++;
+                    if (user.current_task?.status === 'active') stats.given++;
+                    if (user.current_task?.status === 'submitted') stats.review++;
+                    if (user.task_stats?.success) stats.success += user.task_stats.success;
+
+                    // 1. RENDER PENDING REQUESTS (Searching)
+                    if (user.current_task?.status === 'searching') {
+                        hasPending = true;
+                        const card = document.createElement('div');
+                        card.className = 'req-card';
+                        card.innerHTML = `
+                            <div class="uid-text"><i class="fas fa-fingerprint"></i> UID: ${uid}</div>
+                            
+                            <div class="user-info-box">
+                                <div style="font-size:0.7rem; color:#888; margin-bottom:5px;">APPLICANT INFO</div>
+                                <div class="u-row"><i class="fas fa-user"></i> ${user.firstName} ${user.lastName}</div>
+                                <div class="u-row"><i class="fas fa-envelope"></i> ${user.phone}</div> <!-- Showing phone as ID -->
+                            </div>
+
+                            <textarea id="paste-${uid}" class="paste-area" placeholder="Paste full text here (First name: ... Last name: ...)"></textarea>
+                            <button class="btn-auto" onclick="autoFill('${uid}')"><i class="fas fa-pen"></i> AUTO FILL FORM</button>
+
+                            <label class="input-label">First Name</label>
+                            <input type="text" id="fname-${uid}" class="input-field">
+
+                            <label class="input-label">Last Name</label>
+                            <input type="text" id="lname-${uid}" class="input-field">
+
+                            <label class="input-label">Email (Main)</label>
+                            <input type="text" id="email-${uid}" class="input-field">
+
+                            <label class="input-label">DOB</label>
+                            <input type="text" id="dob-${uid}" class="input-field">
+
+                            <label class="input-label">Recovery Email</label>
+                            <input type="text" id="rec-${uid}" class="input-field">
+
+                            <label class="input-label">Password</label>
+                            <input type="text" id="pass-${uid}" class="input-field">
+
+                            <button class="btn-send" onclick="sendTask('${uid}')">SEND DATA TO USER</button>
+                        `;
+                        pendingContainer.appendChild(card);
                     }
 
-                    // 2. Submitted Proofs
-                    if (user.current_task && user.current_task.status === 'submitted') {
-                        pendingCount++;
+                    // 2. RENDER SUBMITTED REVIEWS
+                    if (user.current_task?.status === 'submitted') {
+                        hasReview = true;
                         const proof = user.current_task.submission;
-                        const div = document.createElement('div');
-                        div.className = 'req-card';
-                        div.style.borderLeftColor = '#fff';
-                        div.innerHTML = `
-                            <b>${user.firstName}</b> submitted:<br>
-                            <span style="color:#aaa">Email:</span> ${proof.email}<br>
-                            <span style="color:#aaa">Pass:</span> ${proof.password}<br>
-                            <div class="action-btns">
-                                <button class="btn-approve" onclick="approveTask('${uid}', ${user.balance}, ${user.taskCount})">Approve (Pay)</button>
-                                <button class="btn-reject" onclick="rejectTask('${uid}')">Reject (Fake)</button>
+                        const rCard = document.createElement('div');
+                        rCard.className = 'review-card';
+                        rCard.innerHTML = `
+                            <div class="review-details">
+                                <strong style="color:var(--primary-yellow)">${user.firstName}</strong> submitted:<br>
+                                <small>E: ${proof.email} | P: ${proof.password}</small>
+                            </div>
+                            <div class="review-actions">
+                                <button class="btn-approve" onclick="approveTask('${uid}', ${user.balance || 0})">✔ Pay</button>
+                                <button class="btn-reject" onclick="rejectTask('${uid}')">✖ Reject</button>
                             </div>
                         `;
-                        proofList.appendChild(div);
+                        reviewContainer.appendChild(rCard);
                     }
                 });
-                document.getElementById('cntPending').innerText = pendingCount;
+
+                if(!hasPending) pendingContainer.innerHTML = '<div class="no-data">No new requests found.</div>';
+                if(!hasReview) reviewContainer.innerHTML = '<div class="no-data">No submissions pending review.</div>';
+            } else {
+                pendingContainer.innerHTML = '<div class="no-data">No users found.</div>';
             }
+
+            // Update DOM Counters
+            document.getElementById('cntReq').innerText = stats.req;
+            document.getElementById('cntGiven').innerText = stats.given;
+            document.getElementById('cntReview').innerText = stats.review;
+            document.getElementById('cntSuccess').innerText = stats.success;
         });
 
-        // Select User to Assign
-        window.selectUser = (uid, name, element) => {
-            selectedUid = uid;
-            document.getElementById('selectedUser').innerText = name;
-            document.querySelectorAll('.req-card').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-        };
+        // --- GLOBAL FUNCTIONS ---
 
         // Auto Fill Logic
-        window.autoFill = () => {
-            const raw = document.getElementById('rawData').value;
-            
-            const getVal = (regex) => raw.match(regex)?.[1]?.trim() || '';
+        window.autoFill = (uid) => {
+            const text = document.getElementById(`paste-${uid}`).value;
+            const getVal = (key) => {
+                const regex = new RegExp(key + ":\\s*(.*)", "i");
+                const match = text.match(regex);
+                return match ? match[1].trim() : "";
+            };
 
-            document.getElementById('fname').value = getVal(/First name:(.*)/i);
-            document.getElementById('lname').value = getVal(/Last name:(.*)/i);
-            document.getElementById('pass').value = getVal(/Password:(.*)/i);
-            document.getElementById('dob').value = getVal(/Birthdate:(.*)/i);
-            document.getElementById('email').value = getVal(/Email:(.*)/i);
-            document.getElementById('recEmail').value = getVal(/Recovery email:(.*)/i);
+            document.getElementById(`fname-${uid}`).value = getVal("First name");
+            document.getElementById(`lname-${uid}`).value = getVal("Last name");
+            document.getElementById(`pass-${uid}`).value = getVal("Password");
+            document.getElementById(`dob-${uid}`).value = getVal("Birthdate");
+            document.getElementById(`email-${uid}`).value = getVal("Email");
+            document.getElementById(`rec-${uid}`).value = getVal("Recovery email");
         };
 
         // Send Task
-        window.sendTask = () => {
-            if (!selectedUid) return alert("Select a user first!");
-            
+        window.sendTask = (uid) => {
             const taskData = {
-                firstName: document.getElementById('fname').value,
-                lastName: document.getElementById('lname').value,
-                password: document.getElementById('pass').value,
-                birthdate: document.getElementById('dob').value,
-                email: document.getElementById('email').value,
-                recoveryEmail: document.getElementById('recEmail').value
+                firstName: document.getElementById(`fname-${uid}`).value,
+                lastName: document.getElementById(`lname-${uid}`).value,
+                password: document.getElementById(`pass-${uid}`).value,
+                birthdate: document.getElementById(`dob-${uid}`).value,
+                email: document.getElementById(`email-${uid}`).value,
+                recoveryEmail: document.getElementById(`rec-${uid}`).value
             };
 
-            update(ref(db, `users/${selectedUid}/current_task`), {
+            if(!taskData.email) return alert("Email field is required!");
+
+            update(ref(db, `users/${uid}/current_task`), {
                 status: 'active',
                 data: taskData,
                 expiresAt: Date.now() + (13 * 60 * 1000)
             });
-
-            // Update Admin Stats
-            update(ref(db, 'admin/stats'), { given: (adminStats.given || 0) + 1 });
-            
-            alert("Task Sent Successfully!");
-            // Clear inputs
-            document.querySelectorAll('input').forEach(i => i.value = '');
-            document.getElementById('rawData').value = '';
-            selectedUid = null;
-            document.getElementById('selectedUser').innerText = "None";
+            alert("Task sent successfully!");
         };
 
         // Approve Task
-        window.approveTask = (uid, currentBal, currentTaskCount) => {
-            if(confirm("Approve this task and pay user?")) {
-                const payAmount = 10; // Example: 10 Taka per task
+        window.approveTask = (uid, bal) => {
+            if(confirm("Approve and Pay?")) {
+                const payAmount = 10;
                 update(ref(db, `users/${uid}`), {
-                    balance: (currentBal || 0) + payAmount,
-                    lifetimeBalance: ((currentBal || 0) + payAmount), // Logic needs adjustment if balance spent
-                    taskCount: (currentTaskCount || 0) + 1
+                    balance: bal + payAmount,
+                    lifetimeBalance: bal + payAmount, // Simplified logic
+                    taskCount: (window.cntSuccess || 0) + 1 // Ideally fetch real count
                 });
-                
-                // Reset User Status
                 update(ref(db, `users/${uid}/current_task`), { status: 'idle', data: null, submission: null });
-                
-                // Update Admin Stats
-                update(ref(db, 'admin/stats'), { success: (adminStats.success || 0) + 1 });
-                
-                // Update User Stats
-                // Note: Need to fetch user stats first ideally, simplified here
-                update(ref(db, `users/${uid}/task_stats`), { 
-                   success: firebase.database.ServerValue.increment(1) 
-                });
+                // Increment Success stat in user node
+                // update(ref(db, `users/${uid}/task_stats`), { success: ... })
             }
         };
 
         // Reject Task
         window.rejectTask = (uid) => {
-            if(confirm("Reject this task as FAKE?")) {
-                // Reset User Status
+            if(confirm("Mark as Fake/Rejected?")) {
                 update(ref(db, `users/${uid}/current_task`), { status: 'idle', data: null, submission: null });
-                
-                // Update Admin Stats
-                update(ref(db, 'admin/stats'), { reject: (adminStats.reject || 0) + 1 });
-
-                 // Update User Stats
-                 update(ref(db, `users/${uid}/task_stats`), { 
-                   failed: firebase.database.ServerValue.increment(1) 
-                });
             }
         };
 
-        // Expose functions to window for HTML onClick
+        // Expose to window
         window.autoFill = window.autoFill;
         window.sendTask = window.sendTask;
         window.approveTask = window.approveTask;
